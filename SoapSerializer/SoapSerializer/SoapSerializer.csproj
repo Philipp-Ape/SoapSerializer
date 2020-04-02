@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+		<LangVersion>8.0</LangVersion>
+		<Nullable>enable</Nullable>
+		<RootNamespace>System.Xml.Soap.Serialization</RootNamespace>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Authors>Philipp Ape</Authors>
+		<Product>System.Xml.Soap.Serialization</Product>
+		<Description>Simple lightweight SoapSerializer for .NET Core.</Description>
+		<Version>0.1.0</Version>
+  </PropertyGroup>
+
+</Project>
