@@ -106,6 +106,23 @@ namespace SoapSerializerTest
 			Assert.ThrowsAsync<ProtocolViolationException>(async () => await serializer.Deserialize<Vector>(soap));
 		}
 
+		[Test]
+		public void DeserializeExceptionTest2()
+		{
+			string soap = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<S:Envelope xmlns:S=""http://schemas.xmlsoap.org/soap/envelope/"">
+	<S:Body>
+		<S:Fault xmlns:ns4=""http://www.w3.org/2003/05/soap-envelope"">
+			<faultcode>S:Client</faultcode>
+      <faultstring>Cannot find distribution method for {http://tempuri.org/}testException.</faultstring>
+		</S:Fault>
+	</S:Body>
+</S:Envelope>";
+
+			SoapSerializer serializer = new SoapSerializer("http://tempuri.org/");
+			Assert.ThrowsAsync<ProtocolViolationException>(async () => await serializer.Deserialize<Vector>(soap));
+		}
+
 	}
 
 }

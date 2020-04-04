@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -162,45 +163,48 @@ namespace System.Xml.Soap.Serialization
 				if (reader.NodeType == XmlNodeType.Element && reader.NamespaceURI == SoapNamespace && reader.LocalName == SoapEnvelopeElementName)
 				{
 					while (await reader.ReadAsync())
-					{
 						if (reader.NodeType == XmlNodeType.Element && reader.NamespaceURI == SoapNamespace && reader.LocalName == SoapBodyElementName)
 						{
-							await reader.ReadAsync();
-							await reader.ReadAsync();
+							XmlRootAttribute? rootAttribute = type.GetCustomAttribute<XmlRootAttribute>(true);
+							XmlTypeAttribute? typeAttribute = type.GetCustomAttribute<XmlTypeAttribute>(true);
+							string rootName = rootAttribute?.ElementName ?? typeAttribute?.TypeName ?? type.Name;
+							string? rootNamespace = rootAttribute?.Namespace ?? typeAttribute?.Namespace;
 
-							if (reader.NodeType == XmlNodeType.Element && reader.NamespaceURI == SoapNamespace && reader.LocalName == SoapFaultElementName)
-							{
-								string? faultCode = null;
-
-								while (await reader.ReadAsync())
+							while (await reader.ReadAsync())
+								if (reader.NodeType == XmlNodeType.Element)
 								{
-									if (reader.NodeType == XmlNodeType.Element)
+									if (reader.NamespaceURI == rootNamespace && reader.LocalName == rootName)
+										return new XmlSerializer(type).Deserialize(reader);
+									else if (reader.NamespaceURI == SoapNamespace && reader.LocalName == SoapFaultElementName)
 									{
-										if (reader.LocalName == FaultCodeElementName)
-											faultCode = await reader.ReadElementContentAsStringAsync();
-										else if (reader.LocalName == FaultStringElementName)
-											throw new ProtocolViolationException($"The following error was returned from the server: {(faultCode == null ? string.Empty : $"{faultCode}: ")}{await reader.ReadElementContentAsStringAsync()}");
-									}
+										string? faultCode = null;
 
-									if (reader.NodeType == XmlNodeType.Element && reader.LocalName == FaultCodeElementName)
-										throw new ProtocolViolationException(await reader.ReadElementContentAsStringAsync());
+										while (await reader.ReadAsync())
+											if (reader.NodeType == XmlNodeType.Element)
+												switch (reader.LocalName)
+												{
+													case FaultCodeElementName:
+														await reader.ReadAsync();
+														faultCode = await reader.ReadContentAsStringAsync();
+														break;
+
+													case FaultStringElementName:
+														await reader.ReadAsync();
+														throw new ProtocolViolationException($"The following error was returned from the server: {(faultCode == null ? string.Empty : $"{faultCode}: ")}{await reader.ReadContentAsStringAsync()}");
+												}
+									}
 								}
-							}
-							else
-								return new XmlSerializer(type).Deserialize(reader);
 
 							bodyInitialized = true;
 						}
-					}
 
 					if (!bodyInitialized) throw new InvalidDataException("No body element is contained in the specified SOAP message.");
-
 					envelopeInitialized = true;
 				}
 			}
 
 			if (!envelopeInitialized) throw new InvalidDataException("No envelope element is contained in the specified SOAP message.");
-			throw new InvalidDataException(nameof(reader));
+			throw new InvalidDataException("The specified SOAP message has an invalid format.");
 		}
 
 	}

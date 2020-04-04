@@ -13,3 +13,6 @@ Simple lightweight SoapSerializer for .NET Core.
 - Additional overloads for generic or general objects were defined for serialization and deserialization.
 - Serialization and deserialization is now also possible with strings.
 - Deserialization has been further stabilized.
+
+[Version 0.2.1]
+- Bugfix on deserialization.
