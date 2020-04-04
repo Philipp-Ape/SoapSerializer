@@ -9,7 +9,7 @@
 		<Authors>Philipp Ape</Authors>
 		<Product>System.Xml.Soap.Serialization</Product>
 		<Description>Simple lightweight SoapSerializer for .NET Core.</Description>
-		<Version>0.1.0</Version>
+		<Version>0.2.0</Version>
   </PropertyGroup>
 
 </Project>
